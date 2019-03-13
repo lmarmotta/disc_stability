@@ -1,2 +1,3 @@
-# disc_stability
-Repository used to develop stability analysis tools.
+# Spatial Discretization Stability Studies
+I will try to study the numerical stability of spatial discretization schemes here.
+Lets see until where can I go ...
