@@ -8,10 +8,10 @@ import sys
 from scipy.sparse import diags
 import matplotlib.pyplot as plt
 
-nx = 100
+nx = 41
 dx = 2 / (nx-1)
 nt = 25
-dt = .015
+dt = .25
 
 # Creates diagonal matrix based on diagonals.
 
@@ -61,12 +61,12 @@ for n in range(nt):
     main = np.zeros(nx)
 
     for i in range(1, nx):
-        main[i] =  dt / dx * un[i] * (un[i])
+        main[i] = - un[i] * (dt / dx) * un[i] 
 
     left = np.zeros(nx)
 
     for i in range(1, nx):
-        left[i] = - dt / dx * un[i] * (un[i-1])
+        left[i] = - un[i] * (dt / dx) * un[i-1]
 
     right = np.zeros(nx) # No right for this stencil.
 
@@ -86,6 +86,8 @@ for n in range(nt):
     real = w.real[:]
     imag = w.imag[:]
 
+    print ("Maximun eigenvalues: Real(eig): ", max(real), " Imaginary: Imag(eig): ", max(imag))
+
     # plot the eigenvalues.
 
     fig, ax = plt.subplots(2)
@@ -95,7 +97,7 @@ for n in range(nt):
     # Solve the solution.
 
     for i in range(1, nx):
-        u[i] = un[i] -  dt / dx * un[i] * (un[i] - un[i-1])
+        u[i] = un[i] -  (dt / dx) * un[i] * (un[i] - un[i-1])
 
     # plot the eigenvalues.
 
