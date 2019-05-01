@@ -1,14 +1,18 @@
 #!/usr/bin/python
 
+# Solves the linear advection equation monitoring the stability properties 
+# of the scheme. If it goes unstable, show the solution and the eigenvalues.
+
 import numpy as np
+import sys
 from scipy.sparse import diags
 import matplotlib.pyplot as plt
 
-nx = 41
+nx = 100
 dx = 2 / (nx-1)
 nt = 25
-dt = .025
-c = 1
+dt = .011
+c = 2
 
 # Creates diagonal matrix based on diagonals.
 
@@ -85,15 +89,31 @@ for n in range(nt):
 
     # plot the eigenvalues.
 
-    plt.plot(real, imag, 'ro')
-    plt.xlabel('Real(Eig)')
-    plt.ylabel('Imag(Eig)')
-    plt.show(block=False)
-    plt.pause(0.5)
-    plt.close()
+    fig, ax = plt.subplots(2)
+    ax[0].plot(imag, real, 'ro')
+    ax[0].set(ylabel='Real(Eig)', xlabel='Imag(Eig)')
 
     # Solve the solution.
 
     for i in range(1, nx):
         u[i] = un[i] - c * dt / dx * (un[i] - un[i-1])
+
+    # plot the eigenvalues.
+
+    ax[1].plot(np.linspace(0, 2, nx), u);
+    ax[1].set(xlabel='x', ylabel='u')
+
+    plt.show(block=False)
+    plt.pause(0.5)
+    plt.close()
+
+    if (max(real) > 0.0):
+        print ("Code Unstable, Max eigenvalue = ", max(real))
+        fig, ax = plt.subplots(2)
+        ax[0].plot(imag, real, 'ro')
+        ax[0].set(ylabel='Real(Eig)', xlabel='Imag(Eig)')
+        ax[1].plot(np.linspace(0, 2, nx), u);
+        ax[1].set(xlabel='x', ylabel='u')
+        plt.show(block=True)
+        sys.exit()
 
