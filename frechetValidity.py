@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 
 nx = 41
 dx = 2 / (nx-1)
-nt = 20
+nt = 25
 dt = 0.025
 c = 1
 
@@ -31,6 +31,9 @@ def create_vdiag(left,main,right,size):
 
     return A
 
+def frhs(unn,unm1,dx):
+    return (unn - unm1)/dx
+
 # Create initial condition.
 
 u = np.ones(nx)
@@ -45,8 +48,6 @@ un = np.ones(nx)
 
 rhs = np.ones(nx)
 
-frechet_vec = np.ones(nx) 
-
 # Iterate the solution and monitor the eigenvalues.
 
 for n in range(nt):
@@ -57,28 +58,29 @@ for n in range(nt):
 
     # Separate the residue.
 
-    for i in range(1, nx):
-        rhs[i] = ( c * (un[i] - un[i-1])/dx )
+    for i in range(1, nx-1):
+        rhs[i] = c * frhs(un[i],un[i-1],dx)  # Backward.
+        # rhs[i] = c * frhs(un[i+1],un[i-1],2.0*dx)   # Forward.
 
     # March the residue.
 
-    for i in range(1, nx):
+    for i in range(1, nx-1):
         u[i] = un[i] - dt*rhs[i]
 
-    # Build the frechet derivative.
+    # Computes the derivative of the residues with respect to the solution vector.
 
-    eps = 0.001
+    drhs_du = np.zeros((nx,nx))
 
-    for i in range(1, nx):
-        frechet_vec[i] = (( c * (un[i] + eps - un[i-1])/dx ) - ( c * (un[i] - un[i-1])/dx ))/eps
-
-    # Build a diagonal matrix from the derivatives of the residues.
-
-    frechet_matrix = create_vdiag(0,frechet_vec,0,nx)
+    for i in range(1,nx-1):
+        for j in range(1,nx-1):
+            if ( abs((2.0*(un[j+1] - un[j-1]))) > 0.00001):
+                drhs_du[i,j] = (rhs[i+1] - rhs[i-1]) / (2.0*(un[j+1] - un[j-1]))
+            else:
+                drhs_du[i,j] = 0.0
 
     # Solve the eigenvalues.
 
-    w, v = np.linalg.eig(frechet_matrix)
+    w, v = np.linalg.eig(drhs_du)
 
     # Prepare the plots.
 
@@ -90,7 +92,6 @@ for n in range(nt):
 
     print ("\n")
     print ("Maximun eigenvalues: Real(eig): ", max(real), " Imaginary: Imag(eig): ", max(imag))
-    print ("Minimun eigenvalues: Real(eig): ", min(real), " Imaginary: Imag(eig): ", min(imag))
 
     # plot the eigenvalues.
 
@@ -106,14 +107,3 @@ for n in range(nt):
     plt.show(block=False)
     plt.pause(0.5)
     plt.close()
-
-    if (max(real) > 0.0):
-        print ("Code Unstable, Max eigenvalue = ", max(real))
-        fig, ax = plt.subplots(2)
-        ax[0].plot(imag, real, 'ro')
-        ax[0].set(ylabel='Real(Eig)', xlabel='Imag(Eig)')
-        ax[1].plot(np.linspace(0, 2, nx), u);
-        ax[1].set(xlabel='x', ylabel='u')
-        plt.show(block=True)
-        sys.exit()
-
