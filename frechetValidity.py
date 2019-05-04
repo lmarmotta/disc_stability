@@ -8,11 +8,21 @@ import sys
 from scipy.sparse import diags
 import matplotlib.pyplot as plt
 
+# Stable setup.
+
 nx = 41
 dx = 2 / (nx-1)
 nt = 25
 dt = 0.025
 c = 1
+
+# Unstable setup.
+# 
+# nx = 41
+# dx = 2 / (nx-1)
+# nt = 25
+# dt = 0.060
+# c = 1
 
 # Creates diagonal matrix based on diagonals.
 
@@ -59,8 +69,8 @@ for n in range(nt):
     # Separate the residue.
 
     for i in range(1, nx-1):
-        rhs[i] = c * frhs(un[i],un[i-1],dx)  # Backward.
-        # rhs[i] = c * frhs(un[i+1],un[i-1],2.0*dx)   # Forward.
+        rhs[i] = c * frhs(un[i],un[i-1],dx)  # Backward, stable.
+        # rhs[i] = c * frhs(un[i+1],un[i-1],2.0*dx)  # Central, unstable.
 
     # March the residue.
 
@@ -69,34 +79,33 @@ for n in range(nt):
 
     # Computes the derivative of the residues with respect to the solution vector.
 
-    drhs_du = np.zeros((nx,nx))
+    eps = 0.0001
+
+    drhs_du = np.zeros((nx,nx))  # In order to take the eigenvalues, this shall be a matrix.
 
     for i in range(1,nx-1):
         for j in range(1,nx-1):
-            if ( abs((2.0*(un[j+1] - un[j-1]))) > 0.00001):
-                drhs_du[i,j] = (rhs[i+1] - rhs[i-1]) / (2.0*(un[j+1] - un[j-1]))
-            else:
-                drhs_du[i,j] = 0.0
+            drhs_du[i,j] = (frhs(un[i] + eps,un[i-1] + eps,dx) - frhs(un[j],un[j-1],dx))/eps
 
     # Solve the eigenvalues.
 
-    w, v = np.linalg.eig(drhs_du)
+    w1, v1 = np.linalg.eig(drhs_du)
 
     # Prepare the plots.
 
-    imag = np.zeros(nx)
-    real = np.zeros(nx)
+    real1 = np.zeros(nx)
+    imag1 = np.zeros(nx)
 
-    real = w.real[:]
-    imag = w.imag[:]
+    real1 = w1.real[:]
+    imag1 = w1.imag[:]
 
     print ("\n")
-    print ("Maximun eigenvalues: Real(eig): ", max(real), " Imaginary: Imag(eig): ", max(imag))
+    print ("Maximun eigenvalues: Real(eig): ", max(real1), " Imaginary: Imag(eig): ", max(imag1))
 
     # plot the eigenvalues.
 
     fig, ax = plt.subplots(2)
-    ax[0].plot(imag, real, 'ro')
+    ax[0].plot(imag1, real1, 'ro')
     ax[0].set(ylabel='Real(Eig)', xlabel='Imag(Eig)')
 
     # plot the eigenvalues.

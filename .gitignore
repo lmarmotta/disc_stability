@@ -30,3 +30,6 @@
 *.exe
 *.out
 *.app
+
+# Sources which are not mine
+not_mine.py
