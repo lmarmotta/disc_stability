@@ -79,13 +79,14 @@ for n in range(nt):
 
     # Computes the derivative of the residues with respect to the solution vector.
 
-    eps = 0.0001
+    eps = 0.001
 
     drhs_du = np.zeros((nx,nx))  # In order to take the eigenvalues, this shall be a matrix.
 
     for i in range(1,nx-1):
         for j in range(1,nx-1):
-            drhs_du[i,j] = (frhs(un[i] + eps,un[i-1] + eps,dx) - frhs(un[j],un[j-1],dx))/eps
+            # drhs_du[i,j] = (frhs(un[i] + eps,un[i-1] + eps,dx) - frhs(un[j],un[j-1],dx))/eps
+            drhs_du[i,j] = (frhs(un[i] + eps,un[i-1] + eps,dx) - frhs(un[j] - eps,un[j-1] - eps,dx))/(2.0*eps)
 
     # Solve the eigenvalues.
 
