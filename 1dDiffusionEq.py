@@ -77,7 +77,7 @@ for n in range(nt):
 
     for i in range(1,nx-1):
         for j in range(1,nx-1):
-            drhs_du[i,j] = (frhs(un[i-1] + eps,un[i] + eps,un[i+1] + eps,dx,nu) - frhs(un[i-1],un[i],un[i+1],dx,nu))/eps
+            drhs_du[i,j] = (frhs(un[i-1] + eps,un[i] + eps,un[i+1] + eps,dx,nu) - frhs(un[j-1],un[j],un[j+1],dx,nu))/eps
 
     # Build the hirsch matrix.
 
