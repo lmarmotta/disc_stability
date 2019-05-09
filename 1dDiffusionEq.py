@@ -13,9 +13,9 @@ from autograd import grad, jacobian
 
 # Stable setup.
 
-nx = 100
+nx = 41
 dx = 2 / (nx-1)
-nt = 20
+nt = 30
 nu = 0.1
 dt = 0.001
 
@@ -73,13 +73,10 @@ def main():
 
         drhs_du = np.zeros((nx-1,nx-1))  # In order to take the eigenvalues, this shall be a matrix.
 
-        d       = np.zeros((nx-1))       # The perturbation vector,
-
         for i in range(1,nx-1):
-            d[i] = 1.0
             for j in range(1,nx-1):
-                drhs_du[i,j] = (frhs(un[i-1] + eps*d[i],un[i] + eps*d[i],un[i+1] + eps*d[i],dx,nu) - frhs(un[j-1] + eps*d[i],un[j] + eps*d[i],un[j+1] + eps*d[i],dx,nu))/2.0*eps
-            d[i] = 0.0
+                drhs_du[i,j] = 0.00001
+                drhs_du[i,j] = ( un[i]*frhs(un[i-1] + eps,un[i] + eps,un[i+1] + eps,dx,nu) - un[j]*frhs(un[j-1],un[j],un[j+1],dx,nu) )/eps
 
         # Build the Hirsch matrix.
 
@@ -88,6 +85,12 @@ def main():
         # Fill the diagonals
 
         s_m = (nu/dx**2.0)*create_diagonal(1.0,-2.0,1.0,nx-1)
+
+        # Print both matrices.
+
+        print (np.matrix(s_m))
+        print ("------------------------------------------------------------")
+        print (np.matrix(drhs_du))
 
         # Solve the eigenvalues.
 
@@ -116,7 +119,8 @@ def main():
 
         # plot the eigenvalues.
 
-        fig, ax = plt.subplots(3)
+        plt.figure(3)
+        fig, ax = plt.subplots(3,figsize=(20, 20))
         ax[0].plot(imag1, real1, 'ro')
         ax[0].set(ylabel='Real(Eig)', xlabel='Imag(Eig)')
 
@@ -128,6 +132,10 @@ def main():
 
         plt.show(block=False)
         plt.pause(0.5)
+
+        image_name = "image_" + str(n) + ".png"
+
+        plt.savefig(image_name)
         plt.close()
 
 if __name__ == '__main__':
