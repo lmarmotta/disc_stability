@@ -75,10 +75,9 @@ def main():
 
         for i in range(1,nx-1):
             for j in range(1,nx-1):
-                drhs_du[i,j] = 0.00001
                 drhs_du[i,j] = ( un[i]*frhs(un[i-1] + eps,un[i] + eps,un[i+1] + eps,dx,nu) - un[j]*frhs(un[j-1],un[j],un[j+1],dx,nu) )/eps
 
-        # Build the Hirsch matrix.
+        # Build the Hirsch matrix (chap 8).
 
         s_m = np.zeros((nx-1,nx-1))
 
