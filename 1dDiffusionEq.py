@@ -7,15 +7,16 @@
 
 import numpy as np
 import sys
+import os
 from scipy.sparse import diags
 import matplotlib.pyplot as plt
 from autograd import grad, jacobian
 
 # Stable setup.
 
-nx = 41
+nx = 100
 dx = 2 / (nx-1)
-nt = 30
+nt = 1
 nu = 0.1
 dt = 0.001
 
@@ -69,13 +70,22 @@ def main():
 
         # Computes the derivative of the residues with respect to the solution vector.
 
-        eps = 0.001
+        eps = 0.00001
 
         drhs_du = np.zeros((nx-1,nx-1))  # In order to take the eigenvalues, this shall be a matrix.
 
+        e = np.zeros(nx-1)
+
+        # This loop computes the jacobian matrix according to http://www.netlib.org/math/docpdf/ch08-04.pdf
+
         for i in range(1,nx-1):
             for j in range(1,nx-1):
-                drhs_du[i,j] = ( un[i]*frhs(un[i-1] + eps,un[i] + eps,un[i+1] + eps,dx,nu) - un[j]*frhs(un[j-1],un[j],un[j+1],dx,nu) )/eps
+
+                e[j] = 1.0
+
+                drhs_du[i,j] = ( frhs(un[i-1]+eps*e[j], un[i]+eps*e[j], un[i+1]+eps*e[j],dx,nu) - frhs(un[i-1], un[i],un[i+1],dx,nu) )/eps
+
+                e[j] = 0.0
 
         # Build the Hirsch matrix (chap 8).
 
@@ -136,6 +146,14 @@ def main():
 
         plt.savefig(image_name)
         plt.close()
+
+    # Convert the images to gifs and delete them.
+
+    command_01 = "convert -delay 20 -loop 0 *.png animation.gif"
+    command_02 = "rm *.png"
+
+    os.system(command_01)
+    os.system(command_02)
 
 if __name__ == '__main__':
     main()
