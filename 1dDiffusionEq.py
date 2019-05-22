@@ -5,18 +5,18 @@
 # D_RHS/D_U Jacobian in order to understand the spatial discre
 # tization stability.
 
-import numpy as np
+# import numpy as np
+import autograd.numpy as np
+from autograd import jacobian
 import sys
 import os
 from scipy.sparse import diags
 import matplotlib.pyplot as plt
 from autograd import grad, jacobian
 
-# Stable setup.
-
-nx = 100
+nx = 50
 dx = 2 / (nx-1)
-nt = 1
+nt = 30
 nu = 0.1
 dt = 0.001
 
@@ -29,6 +29,17 @@ def create_diagonal(left,main,right,size):
 
 def frhs(um1,uo1,up1,dx,nu):
     return nu*( (up1 - 2.0 * uo1 + um1)/dx**2.0 )
+
+# Verctorial version of the residue.
+
+def frhs_vec(u,nu,dx):
+
+    u_out = np.zeros(len(u))
+
+    for i in range(len(u)-1):
+        u_out[i] = nu*( ( u[i+1] - 2.0 * u[i] + u[i-1] ) /dx**2.0)
+
+    return u_out
 
 # Main function.
 
@@ -54,38 +65,33 @@ def main():
 
     for n in range(nt):
 
+        # Dump iteration count.
+
+        print (" +++ Time: " + str(n) + " +++")
+
         # Copy the solution of the explicit time marching scheme.
 
         un = u.copy()
 
         # Separate the residue.
 
-        for i in range(1, nx-1):
-            rhs[i] = frhs(un[i-1],un[i],un[i+1],dx,nu)
+        rhs = frhs_vec(un,nu,dx)
 
         # March the residue.
 
-        for i in range(1, nx-1):
-            u[i] = un[i] + dt*rhs[i]
+        u = un + dt*rhs
 
         # Computes the derivative of the residues with respect to the solution vector.
 
-        eps = 0.00001
+        eps = 0.0001
 
         drhs_du = np.zeros((nx-1,nx-1))  # In order to take the eigenvalues, this shall be a matrix.
-
-        e = np.zeros(nx-1)
 
         # This loop computes the jacobian matrix according to http://www.netlib.org/math/docpdf/ch08-04.pdf
 
         for i in range(1,nx-1):
             for j in range(1,nx-1):
-
-                e[j] = 1.0
-
-                drhs_du[i,j] = ( frhs(un[i-1]+eps*e[j], un[i]+eps*e[j], un[i+1]+eps*e[j],dx,nu) - frhs(un[i-1], un[i],un[i+1],dx,nu) )/eps
-
-                e[j] = 0.0
+                drhs_du[i,j] = ( frhs(un[i-1]+eps, un[i]+eps, un[i+1]+eps,dx,nu) - frhs(un[j-1], un[j],un[j+1],dx,nu) )/eps
 
         # Build the Hirsch matrix (chap 8).
 
@@ -111,14 +117,14 @@ def main():
         real1 = np.zeros(nx)
         imag1 = np.zeros(nx)
 
-        real1 = w1.real[:]
-        imag1 = w1.imag[:]
+        real1 = -np.sort(-w1.real[:])
+        imag1 = -np.sort(-w1.imag[:])
 
         real2 = np.zeros(nx)
         imag2 = np.zeros(nx)
 
-        real2 = w2.real[:]
-        imag2 = w2.imag[:]
+        real2 = -np.sort(-w2.real[:])
+        imag2 = -np.sort(-w2.imag[:])
 
         print ("\n")
         print ("Minimun eigenvalues (Frechet): Real(eig): ", min(real1), " Imaginary: Imag(eig): ", min(imag1))
@@ -126,34 +132,27 @@ def main():
         print ("Minimun eigenvalues (Hirsch ): Real(eig): ", min(real2), " Imaginary: Imag(eig): ", min(imag2))
         print ("Maximun eigenvalues (Hirsch ): Real(eig): ", max(real2), " Imaginary: Imag(eig): ", max(imag2))
 
-        # plot the eigenvalues.
+    # plot the eigenvalues.
 
-        plt.figure(3)
-        fig, ax = plt.subplots(3,figsize=(20, 20))
-        ax[0].plot(imag1, real1, 'ro')
-        ax[0].set(ylabel='Real(Eig)', xlabel='Imag(Eig)')
+    plt.figure(3)
+    fig, ax = plt.subplots(3,figsize=(11, 11))
+    ax[0].plot(imag1[0:20], real1[0:20], 'ro')
+    ax[0].set(ylabel='Real(Eig)', xlabel='Imag(Eig)')
+    ax[0].set_xlim(-0.06,0.06)
+    ax[0].set_ylim(-70.0,10.0)
 
-        ax[1].plot(imag2, real2, 'ro')
-        ax[1].set(ylabel='Real(Eig)', xlabel='Imag(Eig)')
+    ax[1].plot(imag2[0:20], real2[0:20], 'ro')
+    ax[1].set(ylabel='Real(Eig)', xlabel='Imag(Eig)')
+    ax[1].set_xlim(-0.06,0.06)
+    ax[1].set_ylim(-70.0,10.0)
 
-        ax[2].plot(np.linspace(0, 2, nx), u);
-        ax[2].set(xlabel='x', ylabel='u')
+    ax[2].plot(np.linspace(0, 2, nx), u);
+    ax[2].set(xlabel='x', ylabel='u')
 
-        plt.show(block=False)
-        plt.pause(0.5)
+    image_name = str(n) + "image"  + ".png"
 
-        image_name = "image_" + str(n) + ".png"
-
-        plt.savefig(image_name)
-        plt.close()
-
-    # Convert the images to gifs and delete them.
-
-    command_01 = "convert -delay 20 -loop 0 *.png animation.gif"
-    command_02 = "rm *.png"
-
-    os.system(command_01)
-    os.system(command_02)
+    plt.savefig(image_name)
+    plt.close()
 
 if __name__ == '__main__':
     main()
