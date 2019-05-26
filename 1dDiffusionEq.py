@@ -5,7 +5,6 @@
 # D_RHS/D_U Jacobian in order to understand the spatial discre
 # tization stability.
 
-# import numpy as np
 import autograd.numpy as np
 from autograd import jacobian
 import sys
@@ -16,8 +15,8 @@ from autograd import grad, jacobian
 
 nx = 50
 dx = 2 / (nx-1)
-nt = 30
-nu = 0.1
+nt = 200
+nu = 0.05
 dt = 0.001
 
 # Creates diagonal matrix based on diagonals.
@@ -103,9 +102,9 @@ def main():
 
         # Print both matrices.
 
-        print (np.matrix(s_m))
+        print (np.max(s_m))
         print ("------------------------------------------------------------")
-        print (np.matrix(drhs_du))
+        print (np.max(drhs_du))
 
         # Solve the eigenvalues.
 
@@ -136,15 +135,15 @@ def main():
 
     plt.figure(3)
     fig, ax = plt.subplots(3,figsize=(11, 11))
-    ax[0].plot(imag1[0:20], real1[0:20], 'ro')
+    ax[0].plot(imag1, real1, 'ro')
     ax[0].set(ylabel='Real(Eig)', xlabel='Imag(Eig)')
-    ax[0].set_xlim(-0.06,0.06)
-    ax[0].set_ylim(-70.0,10.0)
+    # ax[0].set_xlim(-0.06,0.06)
+    # ax[0].set_ylim(-70.0,10.0)
 
-    ax[1].plot(imag2[0:20], real2[0:20], 'ro')
+    ax[1].plot(imag2, real2, 'ro')
     ax[1].set(ylabel='Real(Eig)', xlabel='Imag(Eig)')
-    ax[1].set_xlim(-0.06,0.06)
-    ax[1].set_ylim(-70.0,10.0)
+    # ax[1].set_xlim(-0.06,0.06)
+    # ax[1].set_ylim(-70.0,10.0)
 
     ax[2].plot(np.linspace(0, 2, nx), u);
     ax[2].set(xlabel='x', ylabel='u')
