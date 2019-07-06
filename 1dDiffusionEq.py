@@ -13,11 +13,11 @@ from scipy.sparse import diags
 import matplotlib.pyplot as plt
 from autograd import grad, jacobian
 
-nx = 50
+nx = 15
 dx = 2 / (nx-1)
-nt = 200
-nu = 0.05
-dt = 0.001
+nt = 150
+nu = 0.1
+dt = 0.01
 
 # Creates diagonal matrix based on diagonals.
 
@@ -100,11 +100,6 @@ def main():
 
         s_m = (nu/dx**2.0)*create_diagonal(1.0,-2.0,1.0,nx-1)
 
-        # Print both matrices.
-
-        print (np.max(s_m))
-        print ("------------------------------------------------------------")
-        print (np.max(drhs_du))
 
         # Solve the eigenvalues.
 
@@ -131,18 +126,24 @@ def main():
         print ("Minimun eigenvalues (Hirsch ): Real(eig): ", min(real2), " Imaginary: Imag(eig): ", min(imag2))
         print ("Maximun eigenvalues (Hirsch ): Real(eig): ", max(real2), " Imaginary: Imag(eig): ", max(imag2))
 
+    # Print both matrices.
+
+    print (np.matrix(s_m))
+    print ("------------------------------------------------------------")
+    print (np.matrix(drhs_du))
+
     # plot the eigenvalues.
 
     plt.figure(3)
     fig, ax = plt.subplots(3,figsize=(11, 11))
     ax[0].plot(imag1, real1, 'ro')
     ax[0].set(ylabel='Real(Eig)', xlabel='Imag(Eig)')
-    # ax[0].set_xlim(-0.06,0.06)
+    ax[0].set_xlim(-0.06,0.06)
     # ax[0].set_ylim(-70.0,10.0)
 
     ax[1].plot(imag2, real2, 'ro')
     ax[1].set(ylabel='Real(Eig)', xlabel='Imag(Eig)')
-    # ax[1].set_xlim(-0.06,0.06)
+    ax[1].set_xlim(-0.06,0.06)
     # ax[1].set_ylim(-70.0,10.0)
 
     ax[2].plot(np.linspace(0, 2, nx), u);
